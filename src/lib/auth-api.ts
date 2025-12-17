@@ -48,16 +48,7 @@ export const authApi = {
     return data;
   },
 
-  async logout(payload: RefreshTokenPayload): Promise<ApiSuccessResponse> {
-    const { data } = await apiClient.post<ApiSuccessResponse>(
-      "/auth/logout",
-      payload,
-    );
-    return data;
-  },
-
   async verifyEmail(token: string): Promise<ApiSuccessResponse> {
-    // du hast sowohl POST /auth/verify-email als auch GET /auth/verify-email
     const { data } = await apiClient.post<ApiSuccessResponse>(
       "/auth/verify-email",
       { token },
@@ -84,4 +75,12 @@ export const authApi = {
     );
     return data;
   },
+
+  async logout(payload: RefreshTokenPayload): Promise<ApiSuccessResponse> {
+    const { data } = await apiClient.post<ApiSuccessResponse>(
+      "/auth/logout",
+      payload,
+    );
+    return data;
+  },  
 };

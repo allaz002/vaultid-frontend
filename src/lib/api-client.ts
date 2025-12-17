@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "@/store/auth-store";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
@@ -16,6 +17,14 @@ if (process.env.NODE_ENV === "development") {
     console.log("[API] Request:", config.method, config.url, config.data);
     return config;
   });
+
+  apiClient.interceptors.request.use((config) => {
+    const tokens = useAuthStore.getState().tokens;
+    if (tokens?.accessToken) {
+      config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+    }
+    return config;
+  })
 
   apiClient.interceptors.response.use(
     (response) => {

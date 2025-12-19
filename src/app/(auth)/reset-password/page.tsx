@@ -1,55 +1,53 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import {
+  resetPasswordSchema,
+  type ResetPasswordSchema,
+} from "@/lib/validation/auth-schemas";
 import { authApi } from "@/lib/auth-api";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const resetPasswordSchema = z
-  .object({
-    newPassword: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(6),
-  })
-  .refine((v) => v.newPassword === v.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
+import { PageShell } from "@/components/page-shell";
+import { AuthCard } from "@/components/auth/auth-card";
 
 export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
+  const searchParams = useSearchParams();
+
+  const token = useMemo(() => searchParams.get("token") ?? "", [searchParams]);
 
   const [serverError, setServerError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) {
+      setServerError("Missing reset token. Please use the link from your email.");
+    }
+  }, [token]);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset,
   } = useForm<ResetPasswordSchema>({
     resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
   });
-
-  if (!token) {
-    return (
-      <Card className="p-6">
-        <p className="text-sm text-red-400">Invalid reset link.</p>
-      </Card>
-    );
-  }
 
   const onSubmit = async (values: ResetPasswordSchema) => {
     setServerError(null);
+    setSuccess(null);
 
     try {
       await authApi.resetPassword({
@@ -57,55 +55,93 @@ export default function ResetPasswordPage() {
         newPassword: values.newPassword,
       });
 
-      setSuccess(true);
-      setTimeout(() => router.push("/login"), 2000);
+      setSuccess("Password updated. You can now sign in.");
+      reset();
     } catch (error: any) {
-      setServerError(
+      const message =
         error?.response?.data?.message ??
-          "Reset failed. Please try again.",
-      );
+        error?.message ??
+        "Reset failed. Please request a new reset link.";
+      setServerError(Array.isArray(message) ? message.join(", ") : String(message));
     }
   };
 
   return (
-    <Card className="border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
-      <h1 className="text-xl font-semibold mb-2">Reset password</h1>
-
-      {success ? (
-        <p className="text-sm text-emerald-400">
-          Password updated. Redirecting to login…
-        </p>
-      ) : (
+    <PageShell>
+      <AuthCard
+        title="Reset password"
+        subtitle="Set a new password for your account."
+      >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1">
-            <Label>New password</Label>
-            <Input type="password" {...register("newPassword")} />
+            <Label htmlFor="newPassword" className="text-sm text-muted-foreground">
+              New password
+            </Label>
+            <Input
+              id="newPassword"
+              type="password"
+              autoComplete="new-password"
+              {...register("newPassword")}
+              className="h-11 bg-background/40 border-input focus:border-primary focus:ring-1 focus:ring-primary"
+              disabled={!token}
+            />
             {errors.newPassword && (
-              <p className="text-xs text-red-400">
-                {errors.newPassword.message}
-              </p>
+              <p className="text-xs text-red-400 mt-1">{errors.newPassword.message}</p>
             )}
           </div>
 
           <div className="space-y-1">
-            <Label>Confirm password</Label>
-            <Input type="password" {...register("confirmPassword")} />
+            <Label
+              htmlFor="confirmPassword"
+              className="text-sm text-muted-foreground"
+            >
+              Confirm new password
+            </Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              {...register("confirmPassword")}
+              className="h-11 bg-background/40 border-input focus:border-primary focus:ring-1 focus:ring-primary"
+              disabled={!token}
+            />
             {errors.confirmPassword && (
-              <p className="text-xs text-red-400">
+              <p className="text-xs text-red-400 mt-1">
                 {errors.confirmPassword.message}
               </p>
             )}
           </div>
 
-          {serverError && (
-            <p className="text-xs text-red-400">{serverError}</p>
-          )}
+          {serverError && <p className="text-xs text-red-400">{serverError}</p>}
+          {success && <p className="text-xs text-emerald-400">{success}</p>}
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Resetting..." : "Reset password"}
+          <Button
+            type="submit"
+            className="w-full h-11"
+            disabled={isSubmitting || !token}
+          >
+            {isSubmitting ? "Updating..." : "Update password"}
           </Button>
         </form>
-      )}
-    </Card>
+
+        <div className="mt-5 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => router.push("/login")}
+            className="text-xs text-primary hover:underline"
+          >
+            Back to login
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/forgot-password")}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Request new link
+          </button>
+        </div>
+      </AuthCard>
+    </PageShell>
   );
 }

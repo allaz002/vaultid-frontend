@@ -8,8 +8,8 @@ import { LogoutButton } from "@/components/logout-button";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data, isLoading, isError } = useMe();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { data, isLoading, isError, refetch } = useMe();
+  const isAuthenticated = useAuthStore((s) => !!s.tokens?.refreshToken);
 
   useEffect(() => {
     if (!isAuthenticated || isError) {
@@ -40,6 +40,13 @@ export default function DashboardPage() {
 
           <LogoutButton />
         </header>
+
+        <button
+          className="text-sm underline text-slate-300"
+          onClick={() => refetch()}
+        >
+          Refetch /users/me
+        </button>
 
         <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6">
           <p className="text-sm text-slate-300">

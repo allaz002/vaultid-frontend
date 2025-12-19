@@ -8,19 +8,49 @@ import { LogoutButton } from "@/components/logout-button";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data, isLoading, isError, refetch } = useMe();
-  const isAuthenticated = useAuthStore((s) => !!s.tokens?.refreshToken);
+
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const isBootstrapped = useAuthStore((s) => s.isBootstrapped);
+  const tokens = useAuthStore((s) => s.tokens);
+  const isAuthenticated = !!tokens?.refreshToken;
+
+  const { data, isLoading, isError, refetch } = useMe(
+    !!tokens?.accessToken,
+  );
 
   useEffect(() => {
-    if (!isAuthenticated || isError) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isError, router]);
+    if (!hasHydrated || !isBootstrapped) return;
+    if (!isAuthenticated) router.push("/login");
+  }, [hasHydrated, isBootstrapped, isAuthenticated, router]);
+
+  if (!hasHydrated || !isBootstrapped) {
+    return (
+      <main className="p-6">
+        <p>Restoring session…</p>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   if (isLoading) {
     return (
       <main className="p-6">
         <p>Loading dashboard…</p>
+      </main>
+    );
+  }
+
+  if (isError) {
+    return (
+      <main className="p-6">
+        <p>Could not load user data.</p>
+        <button
+          className="underline text-sm"
+          onClick={() => refetch()}
+        >
+          Retry
+        </button>
       </main>
     );
   }

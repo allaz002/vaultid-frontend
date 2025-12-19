@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
-
-export const metadata: Metadata = {
-  title: "VaultID",
-  description: "Secure authentication and user management frontend for VaultID.",
-};
+import { AuthBootstrap } from "./auth-bootstrap";
 
 export default function RootLayout({
   children,
@@ -15,7 +10,10 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <AuthBootstrap />
+          {children}
+        </Providers>
       </body>
     </html>
   );

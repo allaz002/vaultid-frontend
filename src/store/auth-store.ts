@@ -1,30 +1,58 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { AuthTokens, User } from "@/lib/types";
 
 interface AuthState {
-    user: User | null;
-    tokens: AuthTokens | null;
+  user: User | null;
+  tokens: AuthTokens | null;
 
-    setAuth: (data: { user?: User | null; tokens: AuthTokens | null }) => void;
-    setTokens: (tokens: AuthTokens | null) => void;
-    clearAuth: () => void;
+  hasHydrated: boolean;
+  isBootstrapped: boolean;
+
+  setAuth: (data: { user?: User | null; tokens: AuthTokens | null }) => void;
+  setTokens: (tokens: AuthTokens | null) => void;
+  clearAuth: () => void;
+
+  setHasHydrated: (v: boolean) => void;
+  setBootstrapped: (v: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-    user: null,
-    tokens: null,
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      tokens: null,
 
-    setAuth: ({ user, tokens }) =>
+      hasHydrated: false,
+      isBootstrapped: false,
+
+      setAuth: ({ user, tokens }) =>
         set(() => ({
-            user: user ?? null,
-            tokens,
+          user: user ?? null,
+          tokens,
         })),
 
-    setTokens: (tokens) => set(() => ({ tokens })),
+      setTokens: (tokens) => set(() => ({ tokens })),
 
-    clearAuth: () =>
+      clearAuth: () =>
         set(() => ({
-            user: null,
-            tokens: null,
-        }))
-}));
+          user: null,
+          tokens: null,
+        })),
+
+      setHasHydrated: (v) => set(() => ({ hasHydrated: v })),
+      setBootstrapped: (v) => set(() => ({ isBootstrapped: v })),
+    }),
+    {
+      name: "vaultid-auth",
+      partialize: (state) => ({
+        tokens: state.tokens?.refreshToken
+          ? { refreshToken: state.tokens.refreshToken }
+          : null,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    },
+  ),
+);

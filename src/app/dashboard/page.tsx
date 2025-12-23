@@ -2,9 +2,14 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import type { AxiosError } from "axios";
+
 import { useMe } from "@/hooks/use-me";
 import { useAuthStore } from "@/store/auth-store";
-import type { AxiosError } from "axios";
+
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/logout-button";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -43,9 +48,9 @@ export default function DashboardPage() {
 
   if (!hasHydrated || !isBootstrapped) {
     return (
-      <main className="p-6">
-        <p>Restoring session…</p>
-      </main>
+      <div className="p-6">
+        <p className="text-sm text-slate-300">Restoring session…</p>
+      </div>
     );
   }
 
@@ -53,50 +58,59 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <main className="p-6">
-        <p>Loading dashboard…</p>
-      </main>
+      <div className="p-6">
+        <p className="text-sm text-slate-300">Loading dashboard…</p>
+      </div>
     );
   }
 
-
   if (isError && axiosError?.response?.status !== 403) {
     return (
-      <main className="p-6">
-        <p>Could not load user data.</p>
-        <button
-          className="underline text-sm"
-          onClick={() => refetch()}
-        >
-          Retry
-        </button>
-      </main>
+      <div className="p-6">
+        <Card className="border border-slate-800 bg-slate-900/60 p-6 shadow-lg w-full max-w-md">
+          <h1 className="text-xl font-semibold mb-2">Dashboard</h1>
+          <p className="text-sm text-slate-400 mb-4">
+            Could not load user data.
+          </p>
+
+          <Button className="w-full" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </Card>
+      </div>
     );
   }
 
   if (!data) return null;
 
+  const displayName = data.name?.trim() ? data.name : data.email;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-slate-400">
-          Logged in as {data.email}
-        </p>
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card className="border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-semibold">Dashboard</h1>
+              <p className="text-sm text-slate-400">
+                Welcome, <span className="text-slate-200">{displayName}</span>
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Signed in as {data.email}
+              </p>
+            </div>
+
+            <LogoutButton />
+          </div>
+
+          <div className="mt-6 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+            <p className="text-sm text-slate-300">
+              Protected area
+            </p>
+          </div>
+
+        </Card>
       </div>
-
-      <button
-        className="text-sm underline text-slate-300"
-        onClick={() => refetch()}
-      >
-        Refetch /users/me
-      </button>
-
-      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-6">
-        <p className="text-sm text-slate-300">
-          Protected area
-        </p>
-      </section>
     </div>
   );
 }

@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMe } from "@/hooks/use-me";
 import { useAuthStore } from "@/store/auth-store";
-import { LogoutButton } from "@/components/logout-button";
-import { BrandLogo } from "@/components/brand/brand-logo";
+import type { AxiosError } from "axios";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -13,14 +12,34 @@ export default function DashboardPage() {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const isBootstrapped = useAuthStore((s) => s.isBootstrapped);
   const tokens = useAuthStore((s) => s.tokens);
+
   const isAuthenticated = !!tokens?.refreshToken;
 
-  const { data, isLoading, isError, refetch } = useMe(!!tokens?.accessToken);
+  const { data, isLoading, isError, error, refetch } = useMe(
+    !!tokens?.accessToken,
+  );
+
+  const axiosError = error as AxiosError | null;
 
   useEffect(() => {
     if (!hasHydrated || !isBootstrapped) return;
-    if (!isAuthenticated) router.push("/login");
-  }, [hasHydrated, isBootstrapped, isAuthenticated, router]);
+
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    if (isError && axiosError?.response?.status === 403) {
+      router.push("/verify-email-pending");
+    }
+  }, [
+    hasHydrated,
+    isBootstrapped,
+    isAuthenticated,
+    isError,
+    axiosError,
+    router,
+  ]);
 
   if (!hasHydrated || !isBootstrapped) {
     return (
@@ -40,11 +59,15 @@ export default function DashboardPage() {
     );
   }
 
-  if (isError) {
+
+  if (isError && axiosError?.response?.status !== 403) {
     return (
       <main className="p-6">
         <p>Could not load user data.</p>
-        <button className="underline text-sm" onClick={() => refetch()}>
+        <button
+          className="underline text-sm"
+          onClick={() => refetch()}
+        >
           Retry
         </button>
       </main>

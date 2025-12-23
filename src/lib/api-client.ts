@@ -10,7 +10,6 @@ export const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-console.log("API_BASE_URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const accessToken = useAuthStore.getState().tokens?.accessToken;

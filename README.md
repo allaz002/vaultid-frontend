@@ -42,8 +42,22 @@ This frontend consumes the VaultID backend API:
 [https://github.com/allaz002/vaultid](https://github.com/allaz002/vaultid)
 
 ## Screenshots
-* Login
-* Register
-* Email Verification Pending
-* Password Reset
-* Dashboard
+### Start
+![Start](screenshots/start.png)
+
+### Login
+![Login](screenshots/login.png)
+
+### Register
+![Register](screenshots/register.png)
+
+### Email Verification Pending
+![Verify Email](screenshots/verify-email.png)
+
+### Password Reset
+![Reset Password – Step 1](screenshots/reset_password_1.png)
+![Reset Password – Step 2](screenshots/reset_password_2.png)
+![Reset Password – Step 3](screenshots/reset_password_3.png)
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)

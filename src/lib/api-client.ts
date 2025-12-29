@@ -10,7 +10,6 @@ export const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const accessToken = useAuthStore.getState().tokens?.accessToken;
   if (accessToken) {
@@ -25,16 +24,25 @@ async function refreshTokens(): Promise<AuthTokens> {
   const refreshToken = useAuthStore.getState().tokens?.refreshToken;
   if (!refreshToken) throw new Error("No refresh token");
 
-
   const { data } = await axios.post<AuthTokens>(
     `${API_BASE_URL}/auth/refresh-token`,
     { refreshToken },
     { headers: { "Content-Type": "application/json" } },
   );
 
-
   useAuthStore.getState().setTokens(data);
   return data;
+}
+
+function isAuthEndpoint(url: string): boolean {
+  return (
+    url.includes("/auth/login") ||
+    url.includes("/auth/register") ||
+    url.includes("/auth/forgot-password") ||
+    url.includes("/auth/reset-password") ||
+    url.includes("/auth/verify-email") ||
+    url.includes("/auth/refresh-token")
+  );
 }
 
 apiClient.interceptors.response.use(
@@ -43,8 +51,19 @@ apiClient.interceptors.response.use(
     const status = err.response?.status;
     const originalRequest = err.config as any;
 
+    const url: string = originalRequest?.url ?? "";
+
+    if (status === 401 && isAuthEndpoint(url)) {
+      return Promise.reject(err);
+    }
+
     if (status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      const rt = useAuthStore.getState().tokens?.refreshToken;
+      if (!rt) {
+        return Promise.reject(err);
+      }
 
       try {
         if (!refreshInFlight) {

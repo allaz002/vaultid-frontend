@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/logout-button";
+import { PageShell } from "@/components/page-shell";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -48,9 +49,9 @@ export default function DashboardPage() {
 
   if (!hasHydrated || !isBootstrapped) {
     return (
-      <div className="p-6">
+      <PageShell>
         <p className="text-sm text-slate-300">Restoring session…</p>
-      </div>
+      </PageShell>
     );
   }
 
@@ -58,18 +59,18 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <PageShell>
         <p className="text-sm text-slate-300">Loading dashboard…</p>
-      </div>
+      </PageShell>
     );
   }
 
   if (isError && axiosError?.response?.status !== 403) {
     return (
-      <div className="p-6">
-        <Card className="border border-slate-800 bg-slate-900/60 p-6 shadow-lg w-full max-w-md">
-          <h1 className="text-xl font-semibold mb-2">Dashboard</h1>
-          <p className="text-sm text-slate-400 mb-4">
+      <PageShell>
+        <Card className="w-full max-w-md border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
+          <h1 className="mb-2 text-xl font-semibold">Dashboard</h1>
+          <p className="mb-4 text-sm text-slate-400">
             Could not load user data.
           </p>
 
@@ -77,7 +78,7 @@ export default function DashboardPage() {
             Retry
           </Button>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
@@ -86,16 +87,17 @@ export default function DashboardPage() {
   const displayName = data.name?.trim() ? data.name : data.email;
 
   return (
-    <div className="p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <PageShell>
+      <div className="w-full max-w-4xl space-y-6">
         <Card className="border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-xl font-semibold">Dashboard</h1>
               <p className="text-sm text-slate-400">
-                Welcome, <span className="text-slate-200">{displayName}</span>
+                Welcome,{" "}
+                <span className="text-slate-200">{displayName}</span>
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="mt-1 text-xs text-slate-500">
                 Signed in as {data.email}
               </p>
             </div>
@@ -108,9 +110,8 @@ export default function DashboardPage() {
               Protected area
             </p>
           </div>
-
         </Card>
       </div>
-    </div>
+    </PageShell>
   );
 }

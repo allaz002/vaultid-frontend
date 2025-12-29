@@ -1,12 +1,13 @@
 import { Suspense } from "react";
+import { PageShell } from "@/components/page-shell";
 import { ResetPasswordClient } from "./reset-password-client";
 
 export default function ResetPasswordPage() {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center p-6">
+    <PageShell>
       <Suspense fallback={<p className="text-sm text-slate-300">Loading…</p>}>
         <ResetPasswordClient />
       </Suspense>
-    </div>
+    </PageShell>
   );
 }

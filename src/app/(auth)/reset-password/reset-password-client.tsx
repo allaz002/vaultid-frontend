@@ -5,7 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { resetPasswordSchema, type ResetPasswordSchema } from "@/lib/validation/auth-schemas";
+import {
+  resetPasswordSchema,
+  type ResetPasswordSchema,
+} from "@/lib/validation/auth-schemas";
 import { authApi } from "@/lib/auth-api";
 
 import { Button } from "@/components/ui/button";
@@ -18,10 +21,7 @@ export function ResetPasswordClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const token = useMemo(
-    () => searchParams.get("token") ?? "",
-    [searchParams],
-  );
+  const token = useMemo(() => searchParams.get("token") ?? "", [searchParams]);
 
   const [status, setStatus] = useState<Status>("idle");
   const [serverError, setServerError] = useState<string | null>(null);
@@ -42,7 +42,6 @@ export function ResetPasswordClient() {
     if (!token) {
       setStatus("error");
       setServerError("Missing reset token. Please use the link from your email.");
-      return;
     }
   }, [token]);
 
@@ -78,7 +77,7 @@ export function ResetPasswordClient() {
 
   if (status === "success") {
     return (
-      <div className="max-w-md w-full rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center space-y-3">
+      <div className="w-full max-w-md rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center space-y-3">
         <h1 className="text-xl font-semibold">Password reset</h1>
         <p className="text-sm text-emerald-400">
           Password updated successfully. Redirecting to login…
@@ -88,7 +87,7 @@ export function ResetPasswordClient() {
   }
 
   return (
-    <div className="max-w-md w-full rounded-xl border border-slate-800 bg-slate-900/60 p-8 space-y-4">
+    <div className="w-full max-w-md rounded-xl border border-slate-800 bg-slate-900/60 p-8 space-y-4">
       <div>
         <h1 className="text-xl font-semibold">Reset password</h1>
         <p className="text-sm text-slate-400">
@@ -96,9 +95,7 @@ export function ResetPasswordClient() {
         </p>
       </div>
 
-      {serverError && (
-        <p className="text-xs text-red-400">{serverError}</p>
-      )}
+      {serverError && <p className="text-xs text-red-400">{serverError}</p>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1">
@@ -110,7 +107,7 @@ export function ResetPasswordClient() {
             {...register("newPassword")}
           />
           {errors.newPassword && (
-            <p className="text-xs text-red-400 mt-1">
+            <p className="mt-1 text-xs text-red-400">
               {errors.newPassword.message}
             </p>
           )}
@@ -125,7 +122,7 @@ export function ResetPasswordClient() {
             {...register("confirmPassword")}
           />
           {errors.confirmPassword && (
-            <p className="text-xs text-red-400 mt-1">
+            <p className="mt-1 text-xs text-red-400">
               {errors.confirmPassword.message}
             </p>
           )}
